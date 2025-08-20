@@ -67,11 +67,27 @@ export function MessageList({ messages, loading, isConnected }: MessageListProps
                   className="w-8 h-8 rounded-full object-cover"
                 />
               )}
+              {showAvatar && !message.user && (
+                <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                  <span className="text-xs text-gray-600">?</span>
+                </div>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               {showName && message.user && (
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-semibold text-gray-900">{message.user.name}</span>
+                  <span className="text-xs text-gray-500">
+                    {new Date(message.created_at).toLocaleTimeString([], { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </span>
+                </div>
+              )}
+              {showName && !message.user && (
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-semibold text-gray-500">Unknown User</span>
                   <span className="text-xs text-gray-500">
                     {new Date(message.created_at).toLocaleTimeString([], { 
                       hour: '2-digit', 

@@ -30,7 +30,12 @@ export function MessageInput({ currentUser, currentChannel }: MessageInputProps)
     setMessage(''); // Clear input immediately for better UX
 
     try {
-      console.log('Sending message:', messageContent);
+      console.log('Sending message:', {
+        content: messageContent,
+        channel_id: currentChannel.id,
+        user_id: currentUser.id
+      });
+      
       const { error } = await supabase
         .from('messages')
         .insert({

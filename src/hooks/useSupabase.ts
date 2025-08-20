@@ -72,6 +72,7 @@ export function useMessages(channelId: string | null) {
     // Fetch existing messages first
     async function fetchMessages() {
       try {
+        console.log('Fetching messages for channel:', channelId);
         const { data, error } = await supabase
           .from('messages')
           .select(`
@@ -97,8 +98,15 @@ export function useMessages(channelId: string | null) {
     fetchMessages();
 
     // Set up real-time subscription for new messages
-    const channel: RealtimeChannel = supabase
-      .channel(`messages:${channelId}`)
+    console.log('Setting up real-time subscription for channel:', channelId);
+    
+    const realtimeChannel: RealtimeChannel = supabase
+      .channel(`public:messages:channel_id=eq.${channelId}`, {
+        config: {
+          broadcast: { self: true },
+          presence: { key: channelId },
+        },
+      })
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -108,7 +116,7 @@ export function useMessages(channelId: string | null) {
         console.log('New message received:', payload);
         
         // Fetch the complete message with user data for real-time display
-        const { data: newMessage } = await supabase
+        const { data: newMessage, error } = await supabase
           .from('messages')
           .select(`
             *,
@@ -117,9 +125,17 @@ export function useMessages(channelId: string | null) {
           .eq('id', payload.new.id)
           .single();
 
-        if (newMessage) {
+        if (newMessage && !error) {
           console.log('Adding message to state:', newMessage);
           setMessages(prev => [...prev, newMessage]);
+        } else if (error) {
+          console.error('Error fetching new message details:', error);
+          // Fallback: create message object from payload
+          const fallbackMessage = {
+            ...payload.new,
+            user: null
+          } as Message;
+          setMessages(prev => [...prev, fallbackMessage]);
         }
       })
       .on('postgres_changes', {
@@ -140,7 +156,7 @@ export function useMessages(channelId: string | null) {
         console.log('Message updated:', payload);
         
         // Fetch the updated message with user data
-        const { data: updatedMessage } = await supabase
+        const { data: updatedMessage, error } = await supabase
           .from('messages')
           .select(`
             *,
@@ -149,23 +165,23 @@ export function useMessages(channelId: string | null) {
           .eq('id', payload.new.id)
           .single();
 
-        if (updatedMessage) {
+        if (updatedMessage && !error) {
           setMessages(prev => prev.map(msg => 
             msg.id === updatedMessage.id ? updatedMessage : msg
           ));
         }
       })
-      .on('system', {}, (status, err) => {
-        console.log('Realtime status:', status, err);
+      .on('system', {}, (status) => {
+        console.log('Realtime connection status:', status);
         setIsConnected(status === 'SUBSCRIBED');
       })
       .subscribe();
 
-    console.log('Subscribed to channel:', channelId);
+    console.log('Subscribed to realtime channel for:', channelId);
 
     return () => {
       console.log('Unsubscribing from channel:', channelId);
-      channel.unsubscribe();
+      realtimeChannel.unsubscribe();
       setIsConnected(false);
     };
   }, [channelId]);
