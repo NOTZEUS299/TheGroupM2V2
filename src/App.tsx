@@ -33,8 +33,6 @@ function App() {
     }
   }, [channels, currentChannel]);
 
-  const currentMessageObj = {};
-
   const isLoading = usersLoading || channelsLoading;
 
   if (isLoading) {
@@ -90,13 +88,14 @@ function App() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         <ChatHeader currentChannel={currentChannel} isConnected={isConnected} />
-        <MessageInput
+        {/* <MessageInput
           currentUser={currentUser}
           currentChannel={currentChannel}
-        />
+        /> */}
         <RealtimeChat
+          channel_id={`${currentChannel?.id}`}
           roomName={`${currentChannel?.name}`}
-          username={`${currentUser?.name}`}
+          user={currentUser}
           messages={messages}
           // onMessage={() => console.log('')}
         />

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 interface UseRealtimeChatProps {
   roomName: string;
-  username: string;
+  user: UserObj | null;
 }
 
 // export interface ChatMessage {
@@ -27,7 +27,7 @@ export interface ChannelMessage {
 
 const EVENT_MESSAGE_TYPE = "message";
 
-export function useRealtimeChat({ roomName, username }: UseRealtimeChatProps) {
+export function useRealtimeChat({ roomName, user }: UseRealtimeChatProps) {
   const supabase = createClient();
   const [messages, setMessages] = useState<ChannelMessage[]>([]);
   const [channel, setChannel] = useState<ReturnType<
@@ -56,19 +56,17 @@ export function useRealtimeChat({ roomName, username }: UseRealtimeChatProps) {
     return () => {
       supabase.removeChannel(newChannel);
     };
-  }, [roomName, username, supabase]);
+  }, [roomName, user?.name, supabase]);
 
   const sendMessage = useCallback(
     async (content: string) => {
       if (!channel || !isConnected) return;
 
       const message: any = {
-        id: crypto.randomUUID(),
+        id: crypto.randomUUID(), // 🔹 ensures uniqueness in UI
         content,
-        user: {
-          name: username,
-        },
         created_at: new Date().toISOString(),
+        user,
       };
 
       // Update local state immediately for the sender
@@ -80,7 +78,7 @@ export function useRealtimeChat({ roomName, username }: UseRealtimeChatProps) {
         payload: message,
       });
     },
-    [channel, isConnected, username]
+    [channel, isConnected, user?.name]
   );
 
   return { messages, sendMessage, isConnected };
