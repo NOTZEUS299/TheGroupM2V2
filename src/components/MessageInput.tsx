@@ -45,15 +45,15 @@ export function MessageInput({ currentUser, currentChannel }: MessageInputProps)
         });
 
       if (error) {
-        console.error('❌ Error sending message:', error);
+        console.error('Error sending message:', error);
         // Restore message on error
         setMessage(messageContent);
       } else {
-        console.log('✅ Message sent successfully');
+        console.log('Message sent successfully');
         setLastMessageTime(now);
       }
     } catch (error) {
-      console.error('❌ Error sending message:', error);
+      console.error('Error sending message:', error);
       // Restore message on error
       setMessage(messageContent);
     } finally {

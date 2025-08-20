@@ -9,8 +9,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   realtime: {
-    heartbeatIntervalMs: 30000,
-    reconnectAfterMs: (tries) => Math.min(tries * 1000, 30000),
+    params: {
+      eventsPerSecond: 10,
+    },
   },
 });
 
