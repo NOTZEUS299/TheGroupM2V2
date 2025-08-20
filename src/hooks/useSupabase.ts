@@ -66,8 +66,35 @@ export function useMessages(channelId: string | null) {
 
     // Clear messages when switching channels
     setMessages([]);
-    setLoading(false);
+    setLoading(true);
     setIsConnected(false);
+
+    // Fetch existing messages first
+    async function fetchMessages() {
+      try {
+        const { data, error } = await supabase
+          .from('messages')
+          .select(`
+            *,
+            user:users(*)
+          `)
+          .eq('channel_id', channelId)
+          .order('created_at', { ascending: true });
+
+        if (error) {
+          console.error('Error fetching messages:', error);
+        } else {
+          console.log('Fetched existing messages:', data?.length || 0);
+          setMessages(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchMessages();
 
     // Set up real-time subscription for new messages
     const channel: RealtimeChannel = supabase
@@ -104,6 +131,30 @@ export function useMessages(channelId: string | null) {
         console.log('Message deleted:', payload);
         setMessages(prev => prev.filter(msg => msg.id !== payload.old.id));
       })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'messages',
+        filter: `channel_id=eq.${channelId}`
+      }, async (payload) => {
+        console.log('Message updated:', payload);
+        
+        // Fetch the updated message with user data
+        const { data: updatedMessage } = await supabase
+          .from('messages')
+          .select(`
+            *,
+            user:users(*)
+          `)
+          .eq('id', payload.new.id)
+          .single();
+
+        if (updatedMessage) {
+          setMessages(prev => prev.map(msg => 
+            msg.id === updatedMessage.id ? updatedMessage : msg
+          ));
+        }
+      })
       .on('system', {}, (status, err) => {
         console.log('Realtime status:', status, err);
         setIsConnected(status === 'SUBSCRIBED');
@@ -115,6 +166,7 @@ export function useMessages(channelId: string | null) {
     return () => {
       console.log('Unsubscribing from channel:', channelId);
       channel.unsubscribe();
+      setIsConnected(false);
     };
   }, [channelId]);
 

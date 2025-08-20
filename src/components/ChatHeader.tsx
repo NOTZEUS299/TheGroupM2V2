@@ -34,7 +34,10 @@ export function ChatHeader({ currentChannel, isConnected = false }: ChatHeaderPr
             isConnected ? 'text-green-600' : 'text-gray-400'
           }`}>
             {isConnected ? (
-              <Wifi className="w-4 h-4" />
+              <>
+                <Wifi className="w-4 h-4" />
+                <div className="w-1 h-1 bg-green-500 rounded-full animate-pulse"></div>
+              </>
             ) : (
               <WifiOff className="w-4 h-4" />
             )}
