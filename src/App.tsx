@@ -13,7 +13,7 @@ function App() {
   const { channels, loading: channelsLoading } = useChannels();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null);
-  const { messages, loading: messagesLoading } = useMessages(currentChannel?.id || null);
+  const { messages, loading: messagesLoading, isConnected } = useMessages(currentChannel?.id || null);
 
   // Auto-select first user and channel when they load
   useEffect(() => {
@@ -78,8 +78,8 @@ function App() {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
-        <ChatHeader currentChannel={currentChannel} />
-        <MessageList messages={messages} loading={messagesLoading} />
+        <ChatHeader currentChannel={currentChannel} isConnected={isConnected} />
+        <MessageList messages={messages} loading={messagesLoading} isConnected={isConnected} />
         <MessageInput currentUser={currentUser} currentChannel={currentChannel} />
       </div>
     </div>

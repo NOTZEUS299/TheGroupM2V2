@@ -10,6 +10,7 @@ interface MessageInputProps {
 export function MessageInput({ currentUser, currentChannel }: MessageInputProps) {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [lastMessageTime, setLastMessageTime] = useState<number>(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,24 +19,38 @@ export function MessageInput({ currentUser, currentChannel }: MessageInputProps)
       return;
     }
 
+    // Prevent spam - limit to one message per second
+    const now = Date.now();
+    if (now - lastMessageTime < 1000) {
+      return;
+    }
+
     setSending(true);
+    const messageContent = message.trim();
+    setMessage(''); // Clear input immediately for better UX
 
     try {
+      console.log('Sending message:', messageContent);
       const { error } = await supabase
         .from('messages')
         .insert({
           channel_id: currentChannel.id,
           user_id: currentUser.id,
-          content: message.trim()
+          content: messageContent
         });
 
       if (error) {
         console.error('Error sending message:', error);
+        // Restore message on error
+        setMessage(messageContent);
       } else {
-        setMessage('');
+        console.log('Message sent successfully');
+        setLastMessageTime(now);
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      // Restore message on error
+      setMessage(messageContent);
     } finally {
       setSending(false);
     }
@@ -66,9 +81,10 @@ export function MessageInput({ currentUser, currentChannel }: MessageInputProps)
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={`Message #${currentChannel.name}`}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            placeholder={`Type a message in #${currentChannel.name}...`}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all duration-200"
             rows={1}
+            disabled={sending}
             style={{
               minHeight: '48px',
               maxHeight: '120px',
@@ -81,9 +97,14 @@ export function MessageInput({ currentUser, currentChannel }: MessageInputProps)
           disabled={!message.trim() || sending}
           className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
         >
-          <Send className="w-4 h-4" />
+          {sending ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <Send className="w-4 h-4" />
+          )}
         </button>
       </form>
+      <div className="text-xs text-gray-500 mt-2">Press Enter to send, Shift+Enter for new line</div>
     </div>
   );
 }
