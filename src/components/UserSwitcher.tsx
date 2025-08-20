@@ -15,30 +15,30 @@ export function UserSwitcher({ users, currentUser, onUserChange }: UserSwitcherP
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 w-full p-3 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+        className="flex items-center gap-2 sm:gap-3 w-full p-2 sm:p-3 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
       >
         {currentUser ? (
           <>
             <img
               src={currentUser.avatar_url}
               alt={currentUser.name}
-              className="w-8 h-8 rounded-full object-cover"
+              className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0"
             />
-            <span className="font-medium text-gray-900 flex-1 text-left">{currentUser.name}</span>
+            <span className="text-sm sm:text-base font-medium text-gray-900 flex-1 text-left truncate">{currentUser.name}</span>
           </>
         ) : (
           <>
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-              <User className="w-4 h-4 text-gray-500" />
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+              <User className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
             </div>
-            <span className="text-gray-500 flex-1 text-left">Select User</span>
+            <span className="text-sm sm:text-base text-gray-500 flex-1 text-left">Select User</span>
           </>
         )}
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 text-gray-400 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
           {users.map((user) => (
             <button
               key={user.id}
@@ -46,14 +46,14 @@ export function UserSwitcher({ users, currentUser, onUserChange }: UserSwitcherP
                 onUserChange(user);
                 setIsOpen(false);
               }}
-              className="flex items-center gap-3 w-full p-3 hover:bg-gray-50 transition-colors first:rounded-t-lg last:rounded-b-lg"
+              className="flex items-center gap-2 sm:gap-3 w-full p-2 sm:p-3 hover:bg-gray-50 transition-colors first:rounded-t-lg last:rounded-b-lg"
             >
               <img
                 src={user.avatar_url}
                 alt={user.name}
-                className="w-8 h-8 rounded-full object-cover"
+                className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0"
               />
-              <span className="font-medium text-gray-900">{user.name}</span>
+              <span className="text-sm sm:text-base font-medium text-gray-900 truncate">{user.name}</span>
             </button>
           ))}
         </div>

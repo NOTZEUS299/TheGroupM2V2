@@ -116,15 +116,15 @@ export const RealtimeChat = ({
   );
 
   return (
-    <div className="flex flex-col h-full w-full bg-background text-foreground antialiased">
+    <div className="flex flex-col h-full w-full bg-background text-foreground antialiased min-h-0">
       {/* Messages */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={containerRef} className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-2 sm:space-y-4 min-h-0">
         {allMessages.length === 0 ? (
-          <div className="text-center text-sm text-muted-foreground">
+          <div className="text-center text-sm sm:text-base text-muted-foreground p-4">
             No messages yet. Start the conversation!
           </div>
         ) : null}
-        <div className="space-y-1">
+        <div className="space-y-1 sm:space-y-2">
           {allMessages.map((message, index) => {
             const prevMessage = index > 0 ? allMessages[index - 1] : null;
             const showHeader =
@@ -147,11 +147,11 @@ export const RealtimeChat = ({
 
       <form
         onSubmit={handleSendMessage}
-        className="flex w-full gap-2 border-t border-border p-4"
+        className="flex w-full gap-2 border-t border-border p-3 sm:p-4 bg-white"
       >
         <Input
           className={cn(
-            "rounded-full bg-background text-sm transition-all duration-300",
+            "rounded-full bg-background text-sm sm:text-base transition-all duration-300 min-w-0",
             isConnected && newMessage.trim() ? "w-[calc(100%-36px)]" : "w-full"
           )}
           type="text"
@@ -162,11 +162,11 @@ export const RealtimeChat = ({
         />
         {isConnected && newMessage.trim() && (
           <Button
-            className="aspect-square rounded-full animate-in fade-in slide-in-from-right-4 duration-300"
+            className="aspect-square rounded-full animate-in fade-in slide-in-from-right-4 duration-300 flex-shrink-0"
             type="submit"
             disabled={!isConnected}
           >
-            <Send className="size-4" />
+            <Send className="w-4 h-4 sm:w-5 sm:h-5" />
           </Button>
         )}
       </form>

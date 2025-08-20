@@ -16,10 +16,10 @@ export function MessageList({ messages, loading, isConnected }: MessageListProps
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
-          <div className="text-gray-500">Loading messages...</div>
+          <div className="inline-block animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600 mb-4"></div>
+          <div className="text-sm sm:text-base text-gray-500">Loading messages...</div>
         </div>
       </div>
     );
@@ -27,10 +27,10 @@ export function MessageList({ messages, loading, isConnected }: MessageListProps
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center p-4">
         <div className="text-center text-gray-500">
           <div className="mb-4">
-            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
+            <div className={`inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
               isConnected 
                 ? 'bg-green-100 text-green-800' 
                 : 'bg-yellow-100 text-yellow-800'
@@ -41,15 +41,15 @@ export function MessageList({ messages, loading, isConnected }: MessageListProps
               {isConnected ? 'Connected' : 'Connecting...'}
             </div>
           </div>
-          <p className="text-lg font-medium mb-2">No messages yet</p>
-          <p className="text-sm">Start typing to send the first real-time message!</p>
+          <p className="text-base sm:text-lg font-medium mb-2">No messages yet</p>
+          <p className="text-sm sm:text-base">Start typing to send the first real-time message!</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2 sm:space-y-4">
       {messages.map((message, index) => {
         const showAvatar = index === 0 || messages[index - 1].user_id !== message.user_id;
         const showName = showAvatar;
@@ -57,27 +57,27 @@ export function MessageList({ messages, loading, isConnected }: MessageListProps
         return (
           <div 
             key={message.id} 
-            className={`flex gap-3 ${showAvatar ? 'mt-4' : 'mt-1'}`}
+            className={`flex gap-2 sm:gap-3 ${showAvatar ? 'mt-3 sm:mt-4' : 'mt-1'}`}
           >
-            <div className="w-8 h-8 flex-shrink-0">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
               {showAvatar && message.user && (
                 <img
                   src={message.user.avatar_url}
                   alt={message.user.name}
-                  className="w-8 h-8 rounded-full object-cover"
+                  className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover"
                 />
               )}
               {showAvatar && !message.user && (
-                <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                  <span className="text-xs text-gray-600">?</span>
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                  <span className="text-xs sm:text-sm text-gray-600">?</span>
                 </div>
               )}
             </div>
             <div className="flex-1 min-w-0">
               {showName && message.user && (
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-gray-900">{message.user.name}</span>
-                  <span className="text-xs text-gray-500">
+                <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                  <span className="text-sm sm:text-base font-semibold text-gray-900 truncate">{message.user.name}</span>
+                  <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0">
                     {new Date(message.created_at).toLocaleTimeString([], { 
                       hour: '2-digit', 
                       minute: '2-digit' 
@@ -86,9 +86,9 @@ export function MessageList({ messages, loading, isConnected }: MessageListProps
                 </div>
               )}
               {showName && !message.user && (
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-gray-500">Unknown User</span>
-                  <span className="text-xs text-gray-500">
+                <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                  <span className="text-sm sm:text-base font-semibold text-gray-500">Unknown User</span>
+                  <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0">
                     {new Date(message.created_at).toLocaleTimeString([], { 
                       hour: '2-digit', 
                       minute: '2-digit' 
@@ -96,7 +96,7 @@ export function MessageList({ messages, loading, isConnected }: MessageListProps
                   </span>
                 </div>
               )}
-              <div className="text-gray-900 whitespace-pre-wrap break-words">
+              <div className="text-sm sm:text-base text-gray-900 whitespace-pre-wrap break-words">
                 {message.content}
               </div>
             </div>
