@@ -11,7 +11,7 @@ interface ChannelListProps {
 export function ChannelList({ channels, currentChannel, onChannelChange }: ChannelListProps) {
   return (
     <div className="space-y-1">
-      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider px-2 mb-2">
+      <h3 className="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider px-2 mb-2">
         Channels
       </h3>
       {channels.map((channel) => (
@@ -25,13 +25,13 @@ export function ChannelList({ channels, currentChannel, onChannelChange }: Chann
           }`}
         >
           <Hash 
-            className="w-4 h-4 flex-shrink-0" 
+            className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" 
             style={{ color: currentChannel?.id === channel.id ? '#1e40af' : channel.color }}
           />
           <div className="flex-1 min-w-0">
-            <div className="font-medium truncate">{channel.name}</div>
+            <div className="text-sm sm:text-base font-medium truncate">{channel.name}</div>
             {channel.description && (
-              <div className="text-xs text-gray-500 truncate">{channel.description}</div>
+              <div className="text-xs sm:text-sm text-gray-500 truncate">{channel.description}</div>
             )}
           </div>
         </button>
