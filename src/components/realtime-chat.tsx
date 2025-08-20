@@ -10,11 +10,13 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Send } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { supabase, type User as UserObj } from "../lib/supabase";
 
 interface RealtimeChatProps {
+  channel_id: string;
   roomName: string;
-  username: string;
   onMessage?: any;
+  user: UserObj | null;
   messages?: ChannelMessage[];
 }
 
@@ -27,8 +29,9 @@ interface RealtimeChatProps {
  * @returns The chat component
  */
 export const RealtimeChat = ({
+  channel_id,
   roomName,
-  username,
+  user,
   onMessage,
   messages: initialMessages = [],
 }: RealtimeChatProps) => {
@@ -40,9 +43,10 @@ export const RealtimeChat = ({
     isConnected,
   } = useRealtimeChat({
     roomName,
-    username,
+    user,
   });
   const [newMessage, setNewMessage] = useState("");
+  const [lastMessageTime, setLastMessageTime] = useState(0);
 
   // Merge realtime messages with initial messages
   const allMessages = useMemo(() => {
@@ -72,16 +76,44 @@ export const RealtimeChat = ({
   }, [allMessages, scrollToBottom]);
 
   const handleSendMessage = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!newMessage.trim() || !isConnected) return;
 
+      if (!newMessage.trim() || !isConnected || !user?.id || !roomName) return;
+
+      const now = Date.now();
+      if (now - lastMessageTime < 1000) {
+        return;
+      }
+
+      const content = newMessage?.trim();
       sendMessage(newMessage);
-      setNewMessage("");
+      try {
+        console.log("Sending Message:", {
+          content,
+          channel_id,
+          user: user?.id,
+        });
+        const { error } = await supabase.from("messages").insert({
+          channel_id,
+          user_id: user?.id,
+          content,
+        });
+        if (error) {
+          console.error("Error sending message:", error);
+          setNewMessage(content);
+        } else {
+          console.log("Message sent successfully");
+        }
+      } catch (error) {
+        console.error("Error sending message:", error);
+        setNewMessage(content);
+      } finally {
+        setNewMessage("");
+      }
     },
     [newMessage, isConnected, sendMessage]
   );
-  console.log({ new: newMessage, all: allMessages });
 
   return (
     <div className="flex flex-col h-full w-full bg-background text-foreground antialiased">
@@ -104,7 +136,7 @@ export const RealtimeChat = ({
               >
                 <ChatMessageItem
                   message={message}
-                  isOwnMessage={message?.user?.name === username}
+                  isOwnMessage={message?.user?.name === user?.name}
                   showHeader={showHeader}
                 />
               </div>

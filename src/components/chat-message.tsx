@@ -59,16 +59,17 @@ export const ChatMessageItem = ({
             </div>
           )}
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-col justify-start min-w-0">
           {showHeader && message.user && (
             <div className="flex items-center gap-2 mb-1">
               <span className="font-semibold text-gray-900">
                 {message.user.name}
               </span>
               <span className="text-xs text-gray-500">
-                {new Date(message.created_at).toLocaleTimeString([], {
+                {new Date(message?.created_at).toLocaleTimeString("en-US", {
                   hour: "2-digit",
                   minute: "2-digit",
+                  hour12: true,
                 })}
               </span>
             </div>
@@ -77,15 +78,25 @@ export const ChatMessageItem = ({
             <div className="flex items-center gap-2 mb-1">
               <span className="font-semibold text-gray-500">Unknown User</span>
               <span className="text-xs text-gray-500">
-                {new Date(message.created_at).toLocaleTimeString([], {
+                {new Date(message?.created_at).toLocaleTimeString("en-US", {
                   hour: "2-digit",
                   minute: "2-digit",
+                  hour12: true,
                 })}
               </span>
             </div>
           )}
-          <div className={cn("text-gray-900 whitespace-pre-wrap break-words", {"text-right" : isOwnMessage})}>
-            {message.content}
+          <div className={cn({ "flex justify-end": isOwnMessage })}>
+            <div
+              className={cn(
+                "py-2 px-3 rounded-xl text-sm w-fit",
+                isOwnMessage
+                  ? "text-right bg-gray-800 text-white"
+                  : "bg-slate-200 text-black"
+              )}
+            >
+              {message.content}
+            </div>
           </div>
         </div>
       </div>
