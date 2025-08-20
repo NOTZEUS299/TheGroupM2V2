@@ -1,19 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { MessageSquare } from 'lucide-react';
-import { useUsers, useChannels, useMessages } from './hooks/useSupabase';
-import { UserSwitcher } from './components/UserSwitcher';
-import { ChannelList } from './components/ChannelList';
-import { ChatHeader } from './components/ChatHeader';
-import { MessageList } from './components/MessageList';
-import { MessageInput } from './components/MessageInput';
-import { type User, type Channel } from './lib/supabase';
+import React, { useState, useEffect } from "react";
+import { MessageSquare } from "lucide-react";
+import { useUsers, useChannels, useMessages } from "./hooks/useSupabase";
+import { UserSwitcher } from "./components/UserSwitcher";
+import { ChannelList } from "./components/ChannelList";
+import { ChatHeader } from "./components/ChatHeader";
+import { MessageList } from "./components/MessageList";
+import { MessageInput } from "./components/MessageInput";
+import { type User, type Channel } from "./lib/supabase";
+import { RealtimeChat } from "./components/realtime-chat";
 
 function App() {
   const { users, loading: usersLoading } = useUsers();
   const { channels, loading: channelsLoading } = useChannels();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null);
-  const { messages, loading: messagesLoading, isConnected } = useMessages(currentChannel?.id || null);
+  const {
+    messages,
+    loading: messagesLoading,
+    isConnected,
+  } = useMessages(currentChannel?.id || null);
 
   // Auto-select first user and channel when they load
   useEffect(() => {
@@ -30,13 +35,29 @@ function App() {
 
   const isLoading = usersLoading || channelsLoading;
 
+  const Messages = messages?.map((msg) => ({
+    id: msg.id,
+    content: msg.content,
+    user: {
+      name: msg.user?.name || "Unknown", // fallback if user is missing
+    },
+    createdAt: msg.created_at,
+  }));
+
+  console.log(messages);
+  
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <MessageSquare className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-          <p className="text-lg font-medium text-gray-900 mb-2">Loading Chat...</p>
-          <p className="text-gray-600">Setting up your real-time chat experience</p>
+          <p className="text-lg font-medium text-gray-900 mb-2">
+            Loading Chat...
+          </p>
+          <p className="text-gray-600">
+            Setting up your real-time chat experience
+          </p>
         </div>
       </div>
     );
@@ -52,7 +73,7 @@ function App() {
             <MessageSquare className="w-8 h-8 text-blue-600" />
             <h1 className="text-xl font-bold text-gray-900">TeamChat</h1>
           </div>
-          <UserSwitcher 
+          <UserSwitcher
             users={users}
             currentUser={currentUser}
             onUserChange={setCurrentUser}
@@ -79,8 +100,20 @@ function App() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         <ChatHeader currentChannel={currentChannel} isConnected={isConnected} />
-        <MessageList messages={messages} loading={messagesLoading} isConnected={isConnected} />
-        <MessageInput currentUser={currentUser} currentChannel={currentChannel} />
+        <MessageList
+          messages={messages}
+          loading={messagesLoading}
+          isConnected={isConnected}
+        />
+        <MessageInput
+          currentUser={currentUser}
+          currentChannel={currentChannel}
+        />
+        <RealtimeChat
+          roomName={`${currentChannel?.name}`}
+          username={`${currentUser?.name}`}
+          messages={Messages}
+        />
       </div>
     </div>
   );
