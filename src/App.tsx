@@ -4,7 +4,7 @@ import { useUsers, useChannels, useMessages } from "./hooks/useSupabase";
 import { UserSwitcher } from "./components/UserSwitcher";
 import { ChannelList } from "./components/ChannelList";
 import { ChatHeader } from "./components/ChatHeader";
-import { MessageList } from "./components/MessageList";
+// import { MessageList } from "./components/MessageList";
 import { MessageInput } from "./components/MessageInput";
 import { type User, type Channel } from "./lib/supabase";
 import { RealtimeChat } from "./components/realtime-chat";
@@ -33,19 +33,9 @@ function App() {
     }
   }, [channels, currentChannel]);
 
+  const currentMessageObj = {};
+
   const isLoading = usersLoading || channelsLoading;
-
-  const Messages = messages?.map((msg) => ({
-    id: msg.id,
-    content: msg.content,
-    user: {
-      name: msg.user?.name || "Unknown", // fallback if user is missing
-    },
-    createdAt: msg.created_at,
-  }));
-
-  console.log(messages);
-  
 
   if (isLoading) {
     return (
@@ -100,11 +90,6 @@ function App() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         <ChatHeader currentChannel={currentChannel} isConnected={isConnected} />
-        <MessageList
-          messages={messages}
-          loading={messagesLoading}
-          isConnected={isConnected}
-        />
         <MessageInput
           currentUser={currentUser}
           currentChannel={currentChannel}
@@ -112,7 +97,8 @@ function App() {
         <RealtimeChat
           roomName={`${currentChannel?.name}`}
           username={`${currentUser?.name}`}
-          messages={Messages}
+          messages={messages}
+          // onMessage={() => console.log('')}
         />
       </div>
     </div>
