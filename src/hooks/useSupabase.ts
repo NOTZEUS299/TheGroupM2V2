@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, type User, type Channel, type Message } from '../lib/supabase';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 export function useUsers() {
   const [users, setUsers] = useState<User[]>([]);
@@ -53,38 +54,23 @@ export function useChannels() {
 
 export function useMessages(channelId: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     if (!channelId) {
       setMessages([]);
-      setLoading(false);
+      setIsConnected(false);
       return;
     }
 
-    async function fetchMessages() {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('messages')
-        .select(`
-          *,
-          user:users(*)
-        `)
-        .eq('channel_id', channelId)
-        .order('created_at', { ascending: true });
+    // Clear messages when switching channels
+    setMessages([]);
+    setLoading(false);
+    setIsConnected(false);
 
-      if (error) {
-        console.error('Error fetching messages:', error);
-      } else {
-        setMessages(data || []);
-      }
-      setLoading(false);
-    }
-
-    fetchMessages();
-
-    // Subscribe to real-time updates
-    const subscription = supabase
+    // Set up real-time subscription for new messages
+    const channel: RealtimeChannel = supabase
       .channel(`messages:${channelId}`)
       .on('postgres_changes', {
         event: 'INSERT',
@@ -92,7 +78,9 @@ export function useMessages(channelId: string | null) {
         table: 'messages',
         filter: `channel_id=eq.${channelId}`
       }, async (payload) => {
-        // Fetch the complete message with user data
+        console.log('New message received:', payload);
+        
+        // Fetch the complete message with user data for real-time display
         const { data: newMessage } = await supabase
           .from('messages')
           .select(`
@@ -103,15 +91,32 @@ export function useMessages(channelId: string | null) {
           .single();
 
         if (newMessage) {
+          console.log('Adding message to state:', newMessage);
           setMessages(prev => [...prev, newMessage]);
         }
       })
+      .on('postgres_changes', {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'messages',
+        filter: `channel_id=eq.${channelId}`
+      }, (payload) => {
+        console.log('Message deleted:', payload);
+        setMessages(prev => prev.filter(msg => msg.id !== payload.old.id));
+      })
+      .on('system', {}, (status, err) => {
+        console.log('Realtime status:', status, err);
+        setIsConnected(status === 'SUBSCRIBED');
+      })
       .subscribe();
 
+    console.log('Subscribed to channel:', channelId);
+
     return () => {
-      subscription.unsubscribe();
+      console.log('Unsubscribing from channel:', channelId);
+      channel.unsubscribe();
     };
   }, [channelId]);
 
-  return { messages, loading };
+  return { messages, loading, isConnected };
 }
