@@ -36,5 +36,5 @@ export type Message = {
   user_id: string;
   content: string;
   created_at: string;
-  user?: User;
+  user: User;
 };
