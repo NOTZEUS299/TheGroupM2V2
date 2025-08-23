@@ -30,9 +30,13 @@ export function useUsers() {
 export function useChannels() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchChannels() {
+      try {
+        setLoading(true);
+        setError(null);
       const { data, error } = await supabase
         .from('channels')
         .select('*')
@@ -72,6 +76,7 @@ export function useMessages(channelId: string | null) {
     // Fetch existing messages first
     async function fetchMessages() {
       try {
+        setLoading(true);
         console.log('Fetching messages for channel:', channelId);
         const { data, error } = await supabase
           .from('messages')
@@ -80,6 +85,7 @@ export function useMessages(channelId: string | null) {
             user:users(*)
           `)
           .eq('channel_id', channelId)
+          setError(error.message);
           .order('created_at', { ascending: true });
 
         if (error) {
@@ -91,99 +97,104 @@ export function useMessages(channelId: string | null) {
       } catch (error) {
         console.error('Error fetching messages:', error);
       } finally {
+      } catch (err) {
+        console.error('Error fetching channels:', err);
+        setError('Failed to load channels');
+      } finally {
         setLoading(false);
+      }
       }
     }
 
     fetchMessages();
 
     // Set up real-time subscription for new messages
-    console.log('Setting up real-time subscription for channel:', channelId);
+  return { channels, loading, error };
     
-    // const realtimeChannel: RealtimeChannel = supabase
-    //   .channel(`public:messages:channel_id=eq.${channelId}`, {
-    //     config: {
-    //       broadcast: { self: true },
-    //       presence: { key: channelId },
-    //     },
-    //   })
-    //   .on('postgres_changes', {
-    //     event: 'INSERT',
-    //     schema: 'public',
-    //     table: 'messages',
-    //     filter: `channel_id=eq.${channelId}`
-    //   }, async (payload) => {
-    //     console.log('New message received:', payload);
+    const realtimeChannel: RealtimeChannel = supabase
+      .channel(`messages:${channelId}`, {
+        config: {
+          broadcast: { self: true },
+          presence: { key: channelId },
+        },
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `channel_id=eq.${channelId}`
+      }, async (payload) => {
+        console.log('New message received:', payload);
         
-    //     // Fetch the complete message with user data for real-time display
-    //     const { data: newMessage, error } = await supabase
-    //       .from('messages')
-    //       .select(`
-    //         *,
-    //         user:users(*)
-    //       `)
-    //       .eq('id', payload.new.id)
-    //       .single();
+        // Fetch the complete message with user data for real-time display
+        const { data: newMessage, error } = await supabase
+          .from('messages')
+          .select(`
+            *,
+            user:users(*)
+          `)
+          .eq('id', payload.new.id)
+          .single();
 
-    //     if (newMessage && !error) {
-    //       console.log('Adding message to state:', newMessage);
-    //       setMessages(prev => [...prev, newMessage]);
-    //     } else if (error) {
-    //       console.error('Error fetching new message details:', error);
-    //       // Fallback: create message object from payload
-    //       const fallbackMessage = {
-    //         ...payload.new,
-    //         user: null
-    //       } as Message;
-    //       setMessages(prev => [...prev, fallbackMessage]);
-    //     }
-    //   })
-    //   .on('postgres_changes', {
-    //     event: 'DELETE',
-    //     schema: 'public',
-    //     table: 'messages',
-    //     filter: `channel_id=eq.${channelId}`
-    //   }, (payload) => {
-    //     console.log('Message deleted:', payload);
-    //     setMessages(prev => prev.filter(msg => msg.id !== payload.old.id));
-    //   })
-    //   .on('postgres_changes', {
-    //     event: 'UPDATE',
-    //     schema: 'public',
-    //     table: 'messages',
-    //     filter: `channel_id=eq.${channelId}`
-    //   }, async (payload) => {
-    //     console.log('Message updated:', payload);
+        if (newMessage && !error) {
+          console.log('Adding message to state:', newMessage);
+          setMessages(prev => [...prev, newMessage]);
+        } else if (error) {
+          console.error('Error fetching new message details:', error);
+          // Fallback: create message object from payload
+          const fallbackMessage = {
+            ...payload.new,
+            user: null
+          } as Message;
+          setMessages(prev => [...prev, fallbackMessage]);
+        }
+      })
+      .on('postgres_changes', {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'messages',
+        filter: `channel_id=eq.${channelId}`
+      }, (payload) => {
+        console.log('Message deleted:', payload);
+        setMessages(prev => prev.filter(msg => msg.id !== payload.old.id));
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'messages',
+        filter: `channel_id=eq.${channelId}`
+      }, async (payload) => {
+        console.log('Message updated:', payload);
         
-    //     // Fetch the updated message with user data
-    //     const { data: updatedMessage, error } = await supabase
-    //       .from('messages')
-    //       .select(`
-    //         *,
-    //         user:users(*)
-    //       `)
-    //       .eq('id', payload.new.id)
-    //       .single();
+        // Fetch the updated message with user data
+        const { data: updatedMessage, error } = await supabase
+          .from('messages')
+          .select(`
+            *,
+            user:users(*)
+          `)
+          .eq('id', payload.new.id)
+          .single();
 
-    //     if (updatedMessage && !error) {
-    //       setMessages(prev => prev.map(msg => 
-    //         msg.id === updatedMessage.id ? updatedMessage : msg
-    //       ));
-    //     }
-    //   })
-    //   .on('system', {}, (status) => {
-    //     console.log('Realtime connection status:', status);
-    //     setIsConnected(status === 'SUBSCRIBED');
-    //   })
-    //   .subscribe();
+        if (updatedMessage && !error) {
+          setMessages(prev => prev.map(msg => 
+            msg.id === updatedMessage.id ? updatedMessage : msg
+          ));
+        }
+      })
+      .on('system', {}, (status) => {
+        console.log('Realtime connection status:', status);
+        setIsConnected(status === 'SUBSCRIBED');
+      })
+      .subscribe();
 
-    // console.log('Subscribed to realtime channel for:', channelId);
+    console.log('Subscribed to realtime channel for:', channelId);
 
-    // return () => {
-    //   console.log('Unsubscribing from channel:', channelId);
-    //   realtimeChannel.unsubscribe();
-    //   setIsConnected(false);
-    // };
+    return () => {
+      console.log('Unsubscribing from channel:', channelId);
+      realtimeChannel.unsubscribe();
+      setIsConnected(false);
+    };
   }, [channelId]);
 
   return { messages, loading, isConnected };

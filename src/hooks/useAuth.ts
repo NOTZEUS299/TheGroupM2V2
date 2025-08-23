@@ -34,6 +34,7 @@ export function useAuth() {
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -42,6 +43,26 @@ export function useAuth() {
 
       if (error) {
         console.error('Error fetching user profile:', error);
+        // If user doesn't exist in users table, create a basic profile
+        if (error.code === 'PGRST116') {
+          const { data: authUser } = await supabase.auth.getUser();
+          if (authUser.user) {
+            const newUser = {
+              id: authUser.user.id,
+              name: authUser.user.email?.split('@')[0] || 'User',
+              email: authUser.user.email,
+              avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(authUser.user.email || 'user')}`
+            };
+            
+            const { error: insertError } = await supabase
+              .from('users')
+              .insert(newUser);
+              
+            if (!insertError) {
+              setUser(newUser);
+            }
+          }
+        }
       } else {
         setUser(data);
       }

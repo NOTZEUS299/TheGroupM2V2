@@ -12,7 +12,7 @@ import { RealtimeChat } from "./components/realtime-chat";
 
 function App() {
   const { user, loading: authLoading, signIn, signUp, signOut, updateProfile } = useAuth();
-  const { channels, loading: channelsLoading } = useChannels();
+  const { channels, loading: channelsLoading, error: channelsError } = useChannels();
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [authError, setAuthError] = useState('');
@@ -89,6 +89,34 @@ function App() {
           <p className="text-sm sm:text-base text-gray-600">
             Setting up your real-time chat experience
           </p>
+          {channelsError && (
+            <p className="text-sm text-red-600 mt-2">
+              Error: {channelsError}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if channels failed to load
+  if (channelsError && channels.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+        <div className="text-center">
+          <MessageSquare className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-red-600 mx-auto mb-4" />
+          <p className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+            Failed to Load Channels
+          </p>
+          <p className="text-sm sm:text-base text-gray-600 mb-4">
+            {channelsError}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
