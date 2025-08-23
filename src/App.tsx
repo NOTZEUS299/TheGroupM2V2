@@ -22,9 +22,20 @@ function App() {
     isConnected,
   } = useMessages(currentChannel?.id || null);
 
+  // Debug logging
+  console.log('App render:', {
+    authLoading,
+    user: !!user,
+    channelsLoading,
+    channelsCount: channels.length,
+    channelsError,
+    currentChannel: !!currentChannel
+  });
+
   // Auto-select first channel when they load
   React.useEffect(() => {
     if (channels.length > 0 && !currentChannel) {
+      console.log('Auto-selecting first channel:', channels[0]);
       setCurrentChannel(channels[0]);
     }
   }, [channels, currentChannel]);
@@ -51,16 +62,20 @@ function App() {
 
   // Show loading screen while checking authentication
   if (authLoading) {
+    console.log('App: Showing auth loading screen');
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
         <div className="text-center">
           <MessageSquare className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-blue-600 mx-auto mb-4" />
           <p className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-            Loading...
+            Checking authentication...
           </p>
           <p className="text-sm sm:text-base text-gray-600">
-            Setting up your chat experience
+            Please wait while we verify your session
           </p>
+          <div className="mt-4">
+            <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          </div>
         </div>
       </div>
     );
@@ -68,6 +83,7 @@ function App() {
 
   // Show auth form if not authenticated
   if (!user) {
+    console.log('App: Showing auth form');
     return (
       <AuthForm
         onSignIn={handleSignIn}
@@ -79,6 +95,7 @@ function App() {
 
   // Show loading screen while channels are loading
   if (channelsLoading) {
+    console.log('App: Showing channels loading screen');
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
         <div className="text-center">
@@ -89,6 +106,9 @@ function App() {
           <p className="text-sm sm:text-base text-gray-600">
             Setting up your real-time chat experience
           </p>
+          <div className="mt-4">
+            <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          </div>
           {channelsError && (
             <p className="text-sm text-red-600 mt-2">
               Error: {channelsError}
@@ -101,6 +121,7 @@ function App() {
 
   // Show error if channels failed to load
   if (channelsError && channels.length === 0) {
+    console.log('App: Showing channels error screen');
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
         <div className="text-center">
@@ -122,6 +143,7 @@ function App() {
     );
   }
 
+  console.log('App: Rendering main chat interface');
   return (
     <div className="min-h-screen bg-gray-100 flex relative">
       {/* Sidebar */}
