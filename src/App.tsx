@@ -1,42 +1,84 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { MessageSquare } from "lucide-react";
-import { useUsers, useChannels, useMessages } from "./hooks/useSupabase";
+import { useChannels, useMessages } from "./hooks/useSupabase";
+import { useAuth } from "./hooks/useAuth";
+import { AuthForm } from "./components/auth/AuthForm";
 import { UserSwitcher } from "./components/UserSwitcher";
 import { ChannelList } from "./components/ChannelList";
 import { ChatHeader } from "./components/ChatHeader";
-// import { MessageList } from "./components/MessageList";
 import { MessageInput } from "./components/MessageInput";
-import { type User, type Channel } from "./lib/supabase";
+import { type Channel } from "./lib/supabase";
 import { RealtimeChat } from "./components/realtime-chat";
 
 function App() {
-  const { users, loading: usersLoading } = useUsers();
+  const { user, loading: authLoading, signIn, signUp, signOut, updateProfile } = useAuth();
   const { channels, loading: channelsLoading } = useChannels();
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [authError, setAuthError] = useState('');
   const {
     messages,
     loading: messagesLoading,
     isConnected,
   } = useMessages(currentChannel?.id || null);
 
-  // Auto-select first user and channel when they load
-  useEffect(() => {
-    if (users.length > 0 && !currentUser) {
-      setCurrentUser(users[0]);
-    }
-  }, [users, currentUser]);
-
-  useEffect(() => {
+  // Auto-select first channel when they load
+  React.useEffect(() => {
     if (channels.length > 0 && !currentChannel) {
       setCurrentChannel(channels[0]);
     }
   }, [channels, currentChannel]);
 
-  const isLoading = usersLoading || channelsLoading;
+  const handleSignIn = async (email: string, password: string) => {
+    try {
+      setAuthError('');
+      await signIn(email, password);
+    } catch (error: any) {
+      setAuthError(error.message);
+      throw error;
+    }
+  };
 
-  if (isLoading) {
+  const handleSignUp = async (email: string, password: string, name: string) => {
+    try {
+      setAuthError('');
+      await signUp(email, password, name);
+    } catch (error: any) {
+      setAuthError(error.message);
+      throw error;
+    }
+  };
+
+  // Show loading screen while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+        <div className="text-center">
+          <MessageSquare className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-blue-600 mx-auto mb-4" />
+          <p className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+            Loading...
+          </p>
+          <p className="text-sm sm:text-base text-gray-600">
+            Setting up your chat experience
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth form if not authenticated
+  if (!user) {
+    return (
+      <AuthForm
+        onSignIn={handleSignIn}
+        onSignUp={handleSignUp}
+        loading={false}
+      />
+    );
+  }
+
+  // Show loading screen while channels are loading
+  if (channelsLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
         <div className="text-center">
@@ -78,9 +120,9 @@ function App() {
             </button>
           </div>
           <UserSwitcher
-            users={users}
-            currentUser={currentUser}
-            onUserChange={setCurrentUser}
+            user={user}
+            onSignOut={signOut}
+            onUpdateProfile={updateProfile}
           />
         </div>
 
@@ -122,7 +164,7 @@ function App() {
         <RealtimeChat
           channel_id={`${currentChannel?.id}`}
           roomName={`${currentChannel?.name}`}
-          user={currentUser}
+          user={user}
           messages={messages}
         />
       </div>

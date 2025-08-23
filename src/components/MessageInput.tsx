@@ -3,7 +3,7 @@ import { Send } from 'lucide-react';
 import { supabase, type User, type Channel } from '../lib/supabase';
 
 interface MessageInputProps {
-  currentUser: User | null;
+  currentUser: User;
   currentChannel: Channel | null;
 }
 
@@ -68,11 +68,11 @@ export function MessageInput({ currentUser, currentChannel }: MessageInputProps)
     }
   };
 
-  if (!currentUser || !currentChannel) {
+  if (!currentChannel) {
     return (
       <div className="p-3 sm:p-4 border-t border-gray-200 bg-gray-50">
         <div className="text-center text-gray-500">
-          Select a user and channel to start messaging
+          Select a channel to start messaging
         </div>
       </div>
     );
