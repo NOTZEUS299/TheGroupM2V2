@@ -37,23 +37,29 @@ export function useChannels() {
       try {
         setLoading(true);
         setError(null);
-      const { data, error } = await supabase
-        .from('channels')
-        .select('*')
-        .order('created_at');
+        const { data, error } = await supabase
+          .from('channels')
+          .select('*')
+          .order('created_at');
 
-      if (error) {
-        console.error('Error fetching channels:', error);
-      } else {
-        setChannels(data || []);
+        if (error) {
+          console.error('Error fetching channels:', error);
+          setError(error.message);
+        } else {
+          setChannels(data || []);
+        }
+      } catch (err) {
+        console.error('Error fetching channels:', err);
+        setError('Failed to load channels');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
 
     fetchChannels();
   }, []);
 
-  return { channels, loading };
+  return { channels, loading, error };
 }
 
 export function useMessages(channelId: string | null) {
@@ -85,7 +91,6 @@ export function useMessages(channelId: string | null) {
             user:users(*)
           `)
           .eq('channel_id', channelId)
-          setError(error.message);
           .order('created_at', { ascending: true });
 
         if (error) {
@@ -97,19 +102,13 @@ export function useMessages(channelId: string | null) {
       } catch (error) {
         console.error('Error fetching messages:', error);
       } finally {
-      } catch (err) {
-        console.error('Error fetching channels:', err);
-        setError('Failed to load channels');
-      } finally {
         setLoading(false);
-      }
       }
     }
 
     fetchMessages();
 
     // Set up real-time subscription for new messages
-  return { channels, loading, error };
     
     const realtimeChannel: RealtimeChannel = supabase
       .channel(`messages:${channelId}`, {
