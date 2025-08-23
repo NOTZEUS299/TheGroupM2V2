@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Camera, Upload, Link, User } from 'lucide-react';
+import { X, Camera, Upload, Link, User as UserProf } from 'lucide-react';
 import { type User } from '../../lib/supabase';
 
 interface ProfileModalProps {
@@ -7,6 +7,7 @@ interface ProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUpdateProfile: (updates: Partial<User>) => Promise<void>;
+  
 }
 
 export function ProfileModal({ user, isOpen, onClose, onUpdateProfile }: ProfileModalProps) {
@@ -168,7 +169,7 @@ export function ProfileModal({ user, isOpen, onClose, onUpdateProfile }: Profile
                 Display Name
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <UserProf className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
                   value={name}
