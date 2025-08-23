@@ -13,6 +13,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       eventsPerSecond: 10,
     },
   },
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  }
 });
 
 export type User = {
@@ -20,6 +25,7 @@ export type User = {
   name: string;
   avatar_url: string;
   created_at: string;
+  email?: string;
 };
 
 export type Channel = {

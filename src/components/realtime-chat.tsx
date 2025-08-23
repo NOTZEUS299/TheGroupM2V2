@@ -16,7 +16,7 @@ interface RealtimeChatProps {
   channel_id: string;
   roomName: string;
   onMessage?: any;
-  user: UserObj | null;
+  user: UserObj;
   messages?: ChannelMessage[];
 }
 
@@ -79,7 +79,7 @@ export const RealtimeChat = ({
     async (e: React.FormEvent) => {
       e.preventDefault();
 
-      if (!newMessage.trim() || !isConnected || !user?.id || !roomName) return;
+      if (!newMessage.trim() || !isConnected || !user.id || !roomName) return;
 
       const now = Date.now();
       if (now - lastMessageTime < 1000) {
@@ -92,11 +92,11 @@ export const RealtimeChat = ({
         console.log("Sending Message:", {
           content,
           channel_id,
-          user: user?.id,
+          user: user.id,
         });
         const { error } = await supabase.from("messages").insert({
           channel_id,
-          user_id: user?.id,
+          user_id: user.id,
           content,
         });
         if (error) {
@@ -136,7 +136,7 @@ export const RealtimeChat = ({
               >
                 <ChatMessageItem
                   message={message}
-                  isOwnMessage={message?.user?.name === user?.name}
+                  isOwnMessage={message?.user?.name === user.name}
                   showHeader={showHeader}
                 />
               </div>

@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-slot": "^1.2.3",
+    "@supabase/auth-helpers-react": "^0.5.0",
     "@supabase/realtime-js": "^2.15.2",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.55.0",
@@ -19,8 +21,10 @@
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hook-form": "^7.62.0",
     "tailwind-merge": "^3.3.1",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^4.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
